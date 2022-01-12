@@ -3,12 +3,14 @@ import './App.css';
 import Square from './components/Square';
 import {useState,useEffect} from 'react';
 import {Patterns} from './Patterns';
-const ws = new WebSocket('ws://localhost:8000/ws/chat/rohan');
+import { useCookies } from "react-cookie";
+import Username from './components/Username';
+const ws=new WebSocket("ws://localhost:8000/ws/chat/roomname/")
 function App() {
   const [board,setboard]=useState(["","","","","","","","",""]);
   const [player,setplayer]=useState("X");
   const [result, setResult] = useState({ winner: "none", state: "none" });
-  
+  const [cookies, setCookie,removeCookie] = useCookies(["user"]);
   const choosesquare=(square)=>{
     setboard(board.map((val,idx)=>{
       if(idx===square && val===""){
@@ -21,11 +23,21 @@ function App() {
   };
   ws.onopen = () => {
     // on connecting, do nothing but log it to the console
-    console.log('connected')
-    };
-  
-  
+    var open_req={
+      'action':'fetch_info',
 
+    }
+    ws.send(JSON.stringify(open_req));
+    console.log('connected');
+    };
+  ws.onmessage=evt=>{
+    console.log(evt)
+    const message=JSON.parse(evt.data);
+
+
+  }
+  
+  //runs when ever the board is changed
   useEffect(() => {
     checkWin();
     checkIfTie();
@@ -36,7 +48,7 @@ function App() {
       setplayer("X");
     }
   }, [board]);
-
+  //runs whenever result is changed
   useEffect(() => {
     if (result.state !== "none") {
       alert(`Game Finished! Winning Player: ${result.winner}`);
@@ -44,6 +56,7 @@ function App() {
       restartGame();
     }
   }, [result]);
+  //function to check if the person is win
   const checkWin = () => {
     Patterns.forEach((currPattern) => {
       const firstPlayer = board[currPattern[0]];
@@ -60,7 +73,7 @@ function App() {
       }
     });
   };
-
+  //check if the person is tie
   const checkIfTie = () => {
     let filled = true;
     board.forEach((square) => {
@@ -73,12 +86,15 @@ function App() {
       setResult({ winner: "No One", state: "Tie" });
     }
   };
+  //funciton to restat the game if it restart
   const restartGame = () => {
     setboard(["", "", "", "", "", "", "", "", ""]);
     setplayer("O");
   };
   return (
     <div className="App">
+      <Username cookies={cookies} setCookie={setCookie} removeCookie={removeCookie}/>
+      
       <div className="board">
         <div className='row'>
           <Square val={board[0]} choosesquare={()=>{choosesquare(0)}}/>
