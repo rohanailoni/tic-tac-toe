@@ -51,7 +51,9 @@ function App() {
       settouch("none");
     }
     else if(message['action']==='sync_switch'){
-      
+      if(JSON.stringify(board)===JSON.stringify(message['board'])){
+        return;
+      }
       setboard(message['board']);
       settouch("auto");
     }
@@ -120,7 +122,7 @@ function App() {
   };
   return (
     <div className="App">
-      <Username cookies={cookies} setCookie={setCookie} removeCookie={removeCookie}/>
+      {/* <Username cookies={cookies} setCookie={setCookie} removeCookie={removeCookie}/> */}
       
       <div className="board">
         <div className='row'>
