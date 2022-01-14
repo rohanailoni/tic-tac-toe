@@ -11,6 +11,7 @@ function App() {
   const [player,setplayer]=useState("X");
   const [result, setResult] = useState({ winner: "none", state: "none" });
   const [cookies, setCookie,removeCookie] = useCookies(["user"]);
+  const [touch,settouch]=useState("none");
   const choosesquare=(square)=>{
     setboard(board.map((val,idx)=>{
       if(idx===square && val===""){
@@ -33,20 +34,46 @@ function App() {
   ws.onmessage=evt=>{
     console.log(evt)
     const message=JSON.parse(evt.data);
+    if(message['action']==="start_everyone_is_ready"){
+        setplayer(message['Icon'])
+        if(message['status']==="ON"){
+          settouch("auto");
+        }else if(message['status']==="OFF"){
+          settouch("none");
+        }
 
+    }
+    else if(message['action']==="No_new_users_yet"){
+          settouch("none");
 
+    }
+    else if(message['action']==="More than 2 members connected to a room"){
+      settouch("none");
+    }
+    else if(message['action']==='sync_switch'){
+      
+      setboard(message['board']);
+      settouch("auto");
+    }
   }
-  
+  async function sync_handler(){
+    await ws.send(JSON.stringify({
+      'action':'sync_switch',
+      'board':board,
+      
+
+    }));
+  }
   //runs when ever the board is changed
   useEffect(() => {
     checkWin();
     checkIfTie();
-
-    if (player === "X") {
-      setplayer("O");
-    } else {
-      setplayer("X");
-    }
+   sync_handler()
+    // if (player === "X") {
+    //   setplayer("O");
+    // } else {
+    //   setplayer("X");
+    // }
   }, [board]);
   //runs whenever result is changed
   useEffect(() => {
@@ -97,20 +124,20 @@ function App() {
       
       <div className="board">
         <div className='row'>
-          <Square val={board[0]} choosesquare={()=>{choosesquare(0)}}/>
-          <Square val={board[1]} choosesquare={()=>{choosesquare(1)}}/>
-          <Square val={board[2]} choosesquare={()=>{choosesquare(2)}}/>
+          <Square val={board[0]} choosesquare={()=>{choosesquare(0)}} touch={touch}/>
+          <Square val={board[1]} choosesquare={()=>{choosesquare(1)}} touch={touch}/>
+          <Square val={board[2]} choosesquare={()=>{choosesquare(2)}} touch={touch}/>
         </div>
         <div className='row'>
-        <Square val={board[3]} choosesquare={()=>{choosesquare(3)}}/>
-          <Square val={board[4]} choosesquare={()=>{choosesquare(4)}}/>
-          <Square val={board[5]} choosesquare={()=>{choosesquare(5)}}/>
+        <Square val={board[3]} choosesquare={()=>{choosesquare(3)}} touch={touch}/>
+          <Square val={board[4]} choosesquare={()=>{choosesquare(4)}} touch={touch}/>
+          <Square val={board[5]} choosesquare={()=>{choosesquare(5)}} touch={touch}/>
 
         </div>
         <div className='row'>
-           <Square val={board[6]} choosesquare={()=>{choosesquare(6)}}/>
-          <Square val={board[7]} choosesquare={()=>{choosesquare(7)}}/>
-          <Square val={board[8]} choosesquare={()=>{choosesquare(8)}}/>
+           <Square val={board[6]} choosesquare={()=>{choosesquare(6)}} touch={touch}/>
+          <Square val={board[7]} choosesquare={()=>{choosesquare(7)}} touch={touch}/>
+          <Square val={board[8]} choosesquare={()=>{choosesquare(8)}} touch={touch}/>
         </div>
       </div>
     </div>
